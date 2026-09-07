@@ -1,0 +1,38 @@
+{
+ "builds": [
+  {
+   "source": "interview-cheat-quiz.py",
+   "out": "interview_cheat/typing_quiz.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"typing_quiz.py — quiz 版自动输入（按 1 触发/再按停，简化逻辑整函数原样）。\"\"\"",
+    "from .log import log_event",
+    "from .state import TYPING_STATE"
+   ],
+   "symbols": [
+    "type_answer_into_foreground"
+   ]
+  },
+  {
+   "source": "interview-cheat-code.py",
+   "out": "interview_cheat/typing_code.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"typing_code.py — code 版自动输入全家桶（Alt+1 打字 / Alt+2 粘贴 + 净化/变速/再就绪）。",
+    "",
+    "整函数族原样搬入（code 主本）：_after_alt_release 由 engine 热键按下分支以线程调起，",
+    "等 Alt 松开才真正执行 type/paste——还按着的 Alt 会把注入字符修饰掉。\"\"\"",
+    "from .log import log_event",
+    "from .state import TYPING_STATE"
+   ],
+   "symbols": [
+    "_after_alt_release",
+    "_type_prep",
+    "_type_keystroke_delay",
+    "type_answer_into_foreground",
+    "_rearm",
+    "paste_answer_into_foreground"
+   ]
+  }
+ ]
+}

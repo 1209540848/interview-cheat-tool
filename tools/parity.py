@@ -94,34 +94,43 @@ def check_pair(old_path, new_paths, allow=None):
     for np_ in new_paths:
         _, ns = collect(np_)
         for k, v in ns.items():
-            if k in new_map:
-                print(f"  !! 符号 {k} 在 {np_} 与 {new_map[k][0]} 重复定义", file=sys.stderr)
-            new_map[k] = (np_, v)
+            new_map.setdefault(k, []).append((np_, v))
     old_name = os.path.basename(old_path)
     identical, diff, missing = [], [], []
     for key, occs in sorted(old_syms.items()):
-        if key not in new_map:
+        cands = new_map.get(key)
+        if not cands:
             missing.append(key)
             continue
-        npath, n_occs = new_map[key]
         # 同名多处(old 内重复)? 取第一个, 报出
         o_slice, o_start = occs[0]
-        n_slice, n_start = n_occs[0]
-        if o_slice == n_slice:
-            identical.append(key)
-            continue
-        d = unidiff(o_slice, n_slice)
         verdict_ok = False
-        reason = "??"
-        if allow is not None and key in allow:
-            allowed_lines = set(allow[key])
-            rm = removed_old_numbers(d, o_start)
-            if rm <= allowed_lines:
+        best = None                     # (npath, diff, reason) 展示用
+        for npath, n_occs in cands:
+            n_slice, n_start = n_occs[0]
+            if o_slice == n_slice:      # 任一候选逐字节相等 = 通过
+                identical.append(key)
                 verdict_ok = True
-                reason = f"removed⊆allow[{len(rm)}/{len(allowed_lines)}]"
-            else:
-                reason = f"意外删除行 {sorted(rm - allowed_lines)}"
-        diff.append((key, o_start, npath, d, verdict_ok, reason))
+                break
+            d = unidiff(o_slice, n_slice)
+            if allow is not None and key in allow:
+                allowed_lines = set(allow[key])
+                rm = removed_old_numbers(d, o_start)
+                if rm <= allowed_lines:
+                    verdict_ok = True
+                    reason = f"removed⊆allow[{len(rm)}/{len(allowed_lines)}]"
+                    best = (npath, d, reason)
+                    break
+            if best is None:
+                best = (npath, d, "??")
+        if not verdict_ok:
+            # 全部候选不相等且 diff 超出允许 → FAIL（展示第一个候选）
+            npath, d, reason = best
+            diff.append((key, o_start, npath, d, False, reason))
+        elif best is not None:
+            # allow 放行的收敛编辑：保留 OK 展示
+            npath, d, reason = best
+            diff.append((key, o_start, npath, d, True, reason))
     return old_name, identical, diff, missing
 
 
