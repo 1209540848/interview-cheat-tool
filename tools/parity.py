@@ -115,6 +115,11 @@ def check_pair(old_path, new_paths, allow=None):
             d = unidiff(o_slice, n_slice)
             if allow is not None and key in allow:
                 allowed_lines = set(allow[key])
+                if "*" in allowed_lines:    # "*" = 整符号放行（收敛重写区, 如 def:main）
+                    verdict_ok = True
+                    reason = "allow['*'] 放行（收敛重写区）"
+                    best = (npath, d, reason)
+                    break
                 rm = removed_old_numbers(d, o_start)
                 if rm <= allowed_lines:
                     verdict_ok = True
@@ -191,6 +196,9 @@ def main():
         if not ok:
             fail = True
         print(f"  [{tag}] {key} (旧行{o_start}) -> {npath}  {reason if not ok else ''}")
+        if not ok:
+            print(f"        removed 旧行号: {sorted(removed_old_numbers(d, o_start))}"
+                  f"  (若为预期收敛编辑, 并入 --allow)")
         for ln in d[:16]:
             print(f"      {ln}")
         if len(d) > 16:

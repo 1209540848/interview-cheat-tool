@@ -27,3 +27,12 @@ def log_event(ev):
                 f.write(json.dumps(ev, ensure_ascii=False) + "\n")
     except Exception:
         pass
+
+
+def start_session(model, no_inject):
+    """R3 注入入口：原 main 首部 global LOG_FILENAME 的 4 行块原样封装
+    （引擎 main 启动时调用；本场日志命名：重启提词器 = 新一场）"""
+    global LOG_FILENAME
+    os.makedirs(LOG_DIR, exist_ok=True)
+    LOG_FILENAME = f"session-{time.strftime('%Y%m%d-%H%M%S')}.jsonl"
+    log_event({"type": "session_start", "model": model, "no_inject": no_inject})
