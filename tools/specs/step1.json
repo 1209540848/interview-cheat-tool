@@ -1,0 +1,77 @@
+{
+  "builds": [
+    {
+      "source": "interview-cheat-code.py",
+      "out": "interview_cheat/config.py",
+      "preamble": [
+        "# -*- coding: utf-8 -*-",
+        "\"\"\"config.py — interview_cheat 包：路径基准 + 共享常量 + .env 读取（零依赖，仅 os）。",
+        "",
+        "路径基准收敛编辑（重构 Step 1，2026-09-07）：旧单体 BASE_DIR = dirname(abspath(__file__))",
+        "恰好是仓库根（单体文件就住在根）；包化后 __file__ 指向 interview_cheat/ 子目录，故推导",
+        "改为包父目录——logs/.env/resume.md/window-pos.txt 落点与旧版完全一致。",
+        "旧行已登记 parity --allow：interview-cheat-code.py:65(ENV_FILE) / :67(BASE_DIR)。",
+        "",
+        "死代码核销（Step 1，census 三份源均确认）：READ_POLL_SECONDS / PENDING_MAX_SEC",
+        "在 quiz/code/api 里都只有定义、零引用（API 版注释自称「兼容保留」），不再搬入。",
+        "\"\"\"",
+        "import os",
+        "",
+        "# 收敛编辑：包父目录 = 仓库根（旧版单层 dirname 会指到 interview_cheat/ 自身）",
+        "BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))",
+        "ENV_FILE = os.path.join(BASE_DIR, \".env\")"
+      ],
+      "symbols": [
+        "SAMPLE_RATE", "BLOCK",
+        "GATE_RMS_THR", "ESCAPE_COOLDOWN", "GATE_SILENCE_BLOCKS",
+        "GATE_ESCAPE_RATIO", "GATE_ESCAPE_ABS", "GATE_RECYCLE_SEC",
+        "GATE_FAST_ONSET_SEC", "GATE_FAST_ONSET_MIN_GAP", "MIN_UTTERANCE_SEC",
+        "B_TRIGGER_SEC", "MY_ANSWER_MAX_CHARS", "MY_ANSWER_TEXT_MAX",
+        "MY_BATCH_SEC", "RESUME_MAX_CHARS", "RESUME_FILE", "AUTO_ATTACH_ON",
+        "VAD_RMS_THR", "MIN_SPEECH", "END_SILENCE", "MAX_UTTERANCE",
+        "LOG_DIR", "_env_get"
+      ]
+    },
+    {
+      "source": "interview-cheat-code.py",
+      "out": "interview_cheat/log.py",
+      "preamble": [
+        "# -*- coding: utf-8 -*-",
+        "\"\"\"log.py — 会话 JSONL 日志（属主：LOG_FILENAME）。",
+        "",
+        "R2 属主规则：LOG_FILENAME 会整体重绑定（每场会话命名一次），只能在本模块赋值——",
+        "他模块一律 import interview_cheat.log 后经 log.start_session() 注入，不得 from-import 改写。",
+        "log_event 与旧版逐字节一致（只读 LOG_FILENAME 模块全局）；LOG_DIR 常量在 config.py。",
+        "\"\"\"",
+        "import json",
+        "import os",
+        "import threading",
+        "import time",
+        "",
+        "from .config import LOG_DIR"
+      ],
+      "symbols": ["LOG_FILENAME", "_log_lock", "log_event"]
+    },
+    {
+      "source": "interview-cheat-code.py",
+      "out": "interview_cheat/state.py",
+      "preamble": [
+        "# -*- coding: utf-8 -*-",
+        "\"\"\"state.py — 进程级共享状态容器（原地可变 dict，无函数、无锁）。",
+        "",
+        "R1 规则：这些容器只被原地写（VIEW['stage']=、hist.append 之类），任何模块 from state",
+        "import 后拿到的都是同一对象，不存在重绑定陷阱。",
+        "",
+        "TYPING_STATE 取 code 版 6 键超集（含 pos/start_ts）；quiz 版 4 键是它的子集，",
+        "多出的键 quiz 侧无人读写=无害。VIS_MEM（识图多轮记忆）为 code 独有能力容器，",
+        "quiz 永不引用——可选能力在场而非缺席。",
+        "\"\"\"",
+        "import os"
+      ],
+      "symbols": [
+        "stealth", "ACRYLIC", "CHAMELEON",
+        "VISION_STATE", "push_on", "shot_hide", "TYPING_STATE", "VIS_MEM"
+      ]
+    }
+  ]
+}

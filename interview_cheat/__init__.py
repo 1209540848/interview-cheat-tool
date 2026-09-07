@@ -1,0 +1,10 @@
+# -*- coding: utf-8 -*-
+"""interview_cheat — 面试/测评实时辅助工具的功能域包（重构自 interview-cheat-quiz/code.py 单体）。
+
+布局（依赖单向无环）：config → log/dsp/audio/asr/push/winfx/profiles；
+chat → config,profiles；vision → config,state,profiles；ui → config,state,winfx；
+engine → 全部；repo 根部薄入口 run_quiz.py / run_code.py → engine,profiles。
+
+行为等价是硬底线：本包每个函数/常量都是从旧单体按符号逐字节切片搬来（tools/assemble.py），
+收敛编辑全部登记在 tools/allow-*.json；判定依据 tools/parity.py。
+"""
