@@ -1,32 +1,24 @@
 # -*- coding: utf-8 -*-
 """chat.py — DeepSeek 聊天协议（ChatAgent）。
 
-系统提示词暂按 code 主本原样搬入（SYSTEM_PROMPT 模块常量）；Step 5 接 profiles.py 后
-收敛为 ACTIVE.system_prompt（quiz 版提示词文本届时随 Profile 对象走，两版差异收进配置）。
+系统提示词收敛为 profiles.ACTIVE.system_prompt（两版差异文本收进 profiles.py）；
+模块只读期 ACTIVE 为 None——本模块只在 engine.main 激活后才会被调用，无空窗。
+SYSTEM_PROMPT 模块常量已随收敛移除：差异文本唯 1 副本 = profiles 字段，杜绝双抄漂移。
 """
 import json
 import threading
 
 from .config import RESUME_FILE, RESUME_MAX_CHARS
+from . import profiles          # 提示词取 ACTIVE.system_prompt（差异文本在 profiles，本模块零场景判断）
 
 # ---------- DeepSeek（OpenAI 兼容） ----------
 DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
 DEEPSEEK_MODEL = "deepseek-chat"
 HISTORY_TURNS = 5            # 保留最近 N 轮问答（追问承接；10 轮历史太长会带偏新话题）
-SYSTEM_PROMPT = (
-    "你是实时面试陪练助手：用户正在面试中，会把面试官的问题转写给你。"
-    "请直接给出简洁、口语化、可以照着念的答案要点，用中文回答，"
-    "不要铺垫，不要反问，不要 Markdown 装饰。"
-    "严禁输出思考摸索过程（内心推演、草稿、多方案对比、'让我想想'类填充）——"
-    "只输出最终结论：分点清晰、可直接照念，宁可精炼不要冗长。"
-    "如果题目要求手撕代码/写算法：直接给出完整可运行的代码，"
-    "注释只保留关键一行，代码后附一句时间/空间复杂度。"
-    "用户消息末尾可能出现【附：你此前的回答】段——那是用户实际口头说出的回答，"
-    "供你参考以承接追问、避免重复，它本身不是新问题，不要把它当问题回答。")
 
 def build_system_prompt():
-    """SYSTEM_PROMPT + resume.md 简历（≤RESUME_MAX_CHARS；文件缺失/读失败 → 警告跳过不炸）"""
-    sp = SYSTEM_PROMPT
+    """ACTIVE.system_prompt + resume.md 简历（≤RESUME_MAX_CHARS；文件缺失/读失败 → 警告跳过不炸）"""
+    sp = profiles.ACTIVE.system_prompt       # 收敛编辑：原 SYSTEM_PROMPT 模块常量 → profiles 字段（差异收容）
     try:
         with open(RESUME_FILE, encoding="utf-8") as f:
             resume = f.read().strip()
@@ -49,7 +41,8 @@ class ChatAgent:
         self.api_key = api_key
         self.model = model
         self.messages = [{"role": "system",
-                          "content": system_prompt if system_prompt is not None else SYSTEM_PROMPT}]
+                          "content": system_prompt if system_prompt is not None
+                          else profiles.ACTIVE.system_prompt}]
         self.lock = threading.Lock()
 
     def ask_stream(self, question, on_chunk=None, should_stop=None):

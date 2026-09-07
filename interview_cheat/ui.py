@@ -3,14 +3,16 @@
 
 R2 属主：hist/cur/VIEW/MODE_TXT/PENDING_TXT 会被整体重绑定 → 唯一属主在本模块，
 他模块经 import ui 后 ui.cur 等访问（勿 from-import 后 global 赋值，会改错副本）。
-show_answer_window(ui_q) = code 主本逐字节搬入（几何/手柄两段收敛编辑推迟到
-Step 5 profiles 建立时：place_window/mount_window_extra）。
+show_answer_window(ui_q) = code 主本搬入，启动几何/缩放手柄两段差异已收敛 →
+profiles.ACTIVE.place_window / mount_window_extra（文本唯一副本在 profiles；
+engine.main 激活后才被调用，ACTIVE 无空窗）。
 GEO_FILE 收敛：原 dirname(abspath(__file__)) 包化后指向包内目录 → 钉 config.BASE_DIR
 （包父目录 = repo 根，logs/.env/window-pos.txt 同层）。"""
 import json
 import os
 import queue
 
+from . import profiles          # 窗口差异方法经 ACTIVE 调（差异文本唯一副本在 profiles）
 from .config import BASE_DIR, LOG_DIR
 from .log import log_event
 from .push import push_answer
@@ -25,13 +27,8 @@ def show_answer_window(ui_q):
     root = tk.Tk()
     root.overrideredirect(True)                 # 无边框
     root.attributes("-topmost", True)           # 置顶
-    # 初始化：水平居中、垂直顶边贴屏幕最上（用户要求）；之后可正常拖动
-    _sw = root.winfo_screenwidth()
-    _saved = load_window_geometry()
-    if _saved:                      # 重启回到上次的尺寸+位置（560x160 代码根本排不下）
-        root.geometry(_saved)
-    else:
-        root.geometry(f"760x460+{(_sw - 760) // 2}+0")   # 笔试版默认放大：思路+代码一屏起步
+    # 启动几何：quiz 560x160 顶中 / code 恢复上次或 760x460（原文在 profiles.place_window）
+    profiles.ACTIVE.place_window(root, load_window_geometry)
     # 字体：优先 Inter（若已安装），否则 Segoe UI（观感最接近）；负数尺寸 = 像素
     import tkinter.font as _tkfont
     FAM = "Inter" if "Inter" in set(_tkfont.families(root)) else "Segoe UI"
@@ -164,25 +161,8 @@ def show_answer_window(ui_q):
     close_btn.bind("<Enter>", lambda e: close_btn.config(fg="#FF6B6B"))
     close_btn.bind("<Leave>", lambda e: close_btn.config(fg="#D4D4D4"))
 
-    # 右下角缩放柄：无边框窗没有系统缩放手柄，长代码答案拉大窗口看（最小 300x160）。
-    # 返回 "break" 阻断冒泡到 root 的拖拽绑定（同 close_btn 的防打架手法）
-    grip = tk.Label(root, text="⣿", bg=BG_DARK, fg="#7a7a7a",
-                    cursor="size_nw_se", font=(FAM, -10))
-    grip.place(relx=1.0, x=-14, rely=1.0, y=-15)
-    def on_grip_press(e):
-        root._grip0 = (e.x_root, e.y_root)
-        root._grip_geo = root.geometry()
-    def on_grip_move(e):
-        try:
-            wh, xy = root._grip_geo.split("+")[0], root._grip_geo.split("+")[1:]
-            gw, gh = int(wh.split("x")[0]), int(wh.split("x")[1])
-            gw = max(300, gw + (e.x_root - root._grip0[0]))
-            gh = max(160, gh + (e.y_root - root._grip0[1]))
-            root.geometry(f"{gw}x{gh}+{xy[0]}+{xy[1]}")
-        except Exception:
-            pass
-    grip.bind("<ButtonPress-1>", lambda e: (on_grip_press(e), "break")[1])
-    grip.bind("<B1-Motion>", lambda e: (on_grip_move(e), "break")[1])
+    # 右下角缩放柄（code 独有；quiz 无手柄）——原文在 profiles.mount_window_extra
+    profiles.ACTIVE.mount_window_extra(root, FAM, BG_DARK)
 
     a_text = tk.Text(root, bg=BG_DARK, fg="#D4D4D4", wrap="word",
                      font=(FAM, -14), relief="flat", padx=10, pady=8,

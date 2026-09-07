@@ -3,12 +3,14 @@
 
 共享主本取 code 版（code ⊃ quiz）：_ask_vision_multi 多图核心 + VIS_MEM 多轮记忆助手
 为 code 独有能力，quiz 永不引用（可选能力在场）。VISION_MODEL/BASE_URL/FALLBACK_URL
-两版逐字相同故留在本模块。VISION_PROMPT/VISION_MAX_TOKENS 此处暂居 code 版——两版
-文本不同，Step 5 收进 profiles.py 的 Profile 字段，do_vision 经 ACTIVE 取用。
+两版逐字相同故留在本模块。VISION_PROMPT/VISION_MAX_TOKENS/答崩提示按键名两版文本
+不同 → 已收进 profiles.py 的 Profile 字段（vision_prompt/vision_max_tokens/vision_retry），
+do_vision 经 profiles.ACTIVE 取用（调用时解析；engine.main 激活后才被调用，无空窗）。
 do_vision 统一主本（code 版；quiz 问图段更简，同构差异收敛到 profiles）。"""
 from .config import _env_get
 from .log import log_event
 from .state import VIS_MEM, VISION_STATE
+from . import profiles          # 问图差异取 ACTIVE.vision_*（文本唯一副本在 profiles）
 
 # ---------- Alt+P 截屏识图（手撕代码场景：面试官共享屏幕出题 / 笔试 OJ 截图直接出答案） ----------
 # 兼容两家 OpenAI 风格接口，用 .env 三件套切换，不用改代码：
@@ -19,22 +21,8 @@ from .state import VIS_MEM, VISION_STATE
 VISION_MODEL = "doubao-1.5-vision-lite-250315"     # 默认火山豆包轻量视觉（便宜快）
 VISION_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
 VISION_FALLBACK_URL = "https://ark.cn-beijing.volces.com/api/v3/responses"
-VISION_PROMPT = ("你是笔试/手撕代码助手。本次请求可能附带【历史截图】（同一道题此前截的片段，"
-                 "旧→新排列，可能是没截全的题目拼图、运行报错、测试用例输出）和【此前解答】文本，"
-                 "最后一张是【最新截图】。\n"
-                 "规则1：先判断最新截图与历史内容是否同一道题——\n"
-                 "  · 同一题的补充（题目分两次截没拼全 / 报错信息 / 测试用例输出 / 要求继续优化）："
-                 "必须结合历史与上次解答处理。报错类先一句话说原因，再给【修改后的完整代码】"
-                 "（不许只给 diff/省略号，改动点一行带过）；拼图类把题目信息拼全后正常作答。\n"
-                 "  · 明显是全新题目：忽略历史，按新题作答。\n"
-                 "规则2：严禁输出思考摸索过程（试错、草稿、多方案对比、'我看看'之类）——只给结论。\n"
-                 "规则3：输出固定三块——\n"
-                 "【思路】最多 5 条分点，每条一行内，点明算法名/关键步骤；\n"
-                 "【代码】完整可运行的代码放 markdown 代码块（按题目要求语言，默认 Python）；\n"
-                 "【复杂度】一行。\n"
-                 "中文简洁，直接给结论，不要任何前言。")
-VISION_MAX_TOKENS = 4096   # 输出上限显式声明：不写就吃服务商默认（智谱 glm-4v-flash 默认仅 1024 token，
-                           # 长代码答案必截断——历史"输出不完全"根因）。4096 覆盖手撕代码完整输出
+# VISION_PROMPT / VISION_MAX_TOKENS / 答崩提示按键名已收敛 → profiles.ACTIVE.vision_*
+# （两版文本不同，删 const 防双抄漂移；code 文本现值见 profiles.CODE.vision_prompt）
 
 
 def _vis_mem_note(img_pil, ans):
@@ -180,19 +168,20 @@ def do_vision(ui):
                              resample=Image.LANCZOS)
         # 多轮记忆：历史截图（旧→新）+ 当前新图一并发；prompt 附此前解答文本
         parts = _vis_mem_parts() + [img]
-        prompt = VISION_PROMPT + _vis_mem_prompt_suffix()
+        prompt = profiles.ACTIVE.vision_prompt + _vis_mem_prompt_suffix()   # 收敛：原 VISION_PROMPT const
         mem_n = len(VIS_MEM["imgs"])
-        ans, st = _ask_vision_multi(key, model, url, parts, prompt, VISION_MAX_TOKENS)
+        ans, st = _ask_vision_multi(key, model, url, parts, prompt,
+                                    profiles.ACTIVE.vision_max_tokens)      # 收敛：原 VISION_MAX_TOKENS const
         if not ans:                                 # 整图（含历史）没答出来 → 中央裁剪放大再看一眼
             ui("status", "🔍 整图没认出，放大题目重看中…")
             zoom = _crop_center_zoom(img)
-            ans2, st2 = _ask_vision_multi(key, model, url,
-                                          _vis_mem_parts() + [zoom], prompt, VISION_MAX_TOKENS)
+            ans2, st2 = _ask_vision_multi(key, model, url, _vis_mem_parts() + [zoom],
+                                          prompt, profiles.ACTIVE.vision_max_tokens)
             if ans2:
                 ans = f"（整图没答出，放大重看）\n{ans2}"
             else:
                 ans = (f"❌ 模型没答出来（整图 HTTP {st} / 放大 HTTP {st2}），"
-                       f"重按 Alt+P 截一次或语音问我")
+                       f"重按 {profiles.ACTIVE.vision_retry} 截一次或语音问我")
         if ans and not ans.startswith("❌"):
             _vis_mem_note(img, ans)                 # 答成才记，答崩不污染记忆
         ui("vision", ans)
