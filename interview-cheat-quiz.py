@@ -41,7 +41,6 @@ import json
 import os
 import queue
 import re
-import subprocess
 import sys
 import threading
 import time
@@ -347,23 +346,6 @@ def clean_asr_text(text):
     if len(t) <= 2 and t.strip("。！？!?，,；;：: ") in ASR_NOISE_WORDS:
         return ""
     return t
-
-def clean_display_text(text):
-    """答案显示清洗：去 Markdown 装饰（水平线/加粗/代码符号）、压缩连续空行为单个。
-    （提词器里 '---' 分隔符和成片空行很难看，用户实测反馈）"""
-    out = []
-    for line in text.split("\n"):
-        s = line.strip()
-        if re.match(r"^[-=*_]{3,}$", s):       # 水平线
-            continue
-        if not s:
-            if out and out[-1] != "":          # 连续空行压缩成一个
-                out.append("")
-            continue
-        s = re.sub(r"\*\*|__|`|#+|\|", "", s)  # 去加粗/代码/井号/表格线
-        out.append(s)
-    while out and out[-1] == "":
-        out.pop()
     return "\n".join(out)
 
 # ---------- 问答 agent：DeepSeek API + 内存对话历史 ----------
@@ -845,7 +827,6 @@ stealth = {"on": os.environ.get("SHOW_WINDOW_IN_CAPTURE") != "1"}   # F7 防捕�
 ACRYLIC = {"on": False}  # --acrylic 启动参数：磨砂玻璃背景（DWM Acrylic）替代灰色实底。模块级同上
 CHAMELEON = {"on": False}  # --chameleon 启动参数：吸窗口下方屏幕颜色做底板，文字自动深浅（变色龙）
 
-
 def sample_screen_rect(x, y, w, h):
     """GDI BitBlt 采样屏幕矩形平均色（返回 (r, g, b)），不依赖 PIL。
     坑：不能采自己窗口的像素（会采到自己的旧颜色 → 反馈循环锁死），
@@ -892,7 +873,6 @@ def sample_screen_rect(x, y, w, h):
         bs += bits[4 * i]
     return rs // n, gs // n, bs // n
 
-
 def set_capture_excluded(root, exclude):
     """把答案窗从屏幕捕获中排除：自己照常看，截屏/录屏/共享画面里该区域空白。
     Windows 10 2004+ 官方接口（DRM 播放器同款机制），本机 19045 支持。返回是否成功。"""
@@ -908,7 +888,6 @@ def set_capture_excluded(root, exclude):
     except Exception as e:
         print(f"⚠️ 防捕获设置失败: {e}", flush=True)
         return False
-
 
 def set_no_activate(root):
     """给答案窗挂 WS_EX_NOACTIVATE：窗口永不激活、点它也不抢焦点。
@@ -937,11 +916,9 @@ class ACCENTPOLICY(ctypes.Structure):
     _fields_ = [("AccentState", ctypes.c_uint), ("AccentFlags", ctypes.c_uint),
                 ("GradientColor", ctypes.c_uint), ("AnimationId", ctypes.c_uint)]
 
-
 class WINDOWCOMPOSITIONATTRIBDATA(ctypes.Structure):
     _fields_ = [("Attribute", ctypes.c_int), ("Data", ctypes.c_void_p),
                 ("SizeOfData", ctypes.c_size_t)]
-
 
 def set_acrylic(root):
     """给答案窗挂 DWM Acrylic 磨砂玻璃（Win10 1803+ 官方 SetWindowCompositionAttribute）。
@@ -1341,15 +1318,6 @@ def save_window_geometry(geo):
             f.write(geo)
     except Exception:
         pass
-
-def load_window_geometry():
-    try:
-        with open(GEO_FILE, "r", encoding="utf-8") as f:
-            s = f.read().strip()
-        if s and "x" in s and "+" in s:
-            return s
-    except Exception:
-        pass
     return None
 
 # ---------- F2 截屏识图（手撕代码场景：面试官共享屏幕出题，按 F2 直接出答案） ----------
@@ -1490,7 +1458,6 @@ def push_answer(question, answer):
 
     threading.Thread(target=_run, daemon=True).start()
 
-
 def _vision_parse(j):
     """解析 chat/completions / responses 两种响应格式，返回文本"""
     try:                                            # chat/completions 格式（主流）
@@ -1508,7 +1475,6 @@ def _vision_parse(j):
         except Exception:
             return None
 
-
 def _crop_center_zoom(img, fx=1.8):
     """裁屏幕中央 60% 宽 × 75% 高（题目主体一般在中间偏上）再放大 fx 倍——
     小图形/小数字整图里看不清，裁出来放大后模型才认得（穷替版 VisualCoT）"""
@@ -1518,7 +1484,6 @@ def _crop_center_zoom(img, fx=1.8):
     x0, y0 = (w - cw) // 2, int(h * 0.08)           # 中央略偏上：题目区一般在中上部
     crop = img.crop((x0, y0, x0 + cw, y0 + ch))
     return crop.resize((max(1, int(cw * fx)), max(1, int(ch * fx))), resample=Image.LANCZOS)
-
 
 def _ask_vision_once(key, model, url, img, prompt, max_tokens):
     """单张 PIL 图 → 编码 JPEG → 识图 API → 解析答案。
@@ -1545,7 +1510,6 @@ def _ask_vision_once(key, model, url, img, prompt, max_tokens):
             return _vision_parse(r2.json()), 200
         return None, r2.status_code
     return None, r.status_code
-
 
 def do_vision(ui):
     """P 截屏识图（后台线程）：截图 → 识图 API → 答案窗显示。整图失败自动裁剪放大重试，不打断主链路"""

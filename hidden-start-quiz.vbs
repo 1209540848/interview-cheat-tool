@@ -6,4 +6,4 @@ Set ws = CreateObject("Wscript.Shell")
 py = "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\python.exe"
 If Not fso.FileExists(py) Then py = "python"
 ws.CurrentDirectory = base
-ws.Run """" & py & """ """ & base & "\interview-cheat-quiz.py"" --chameleon", 0, False
+ws.Run """" & py & """ """ & base & "\run_quiz.py"" --chameleon", 0, False
