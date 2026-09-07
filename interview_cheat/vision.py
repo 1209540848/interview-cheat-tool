@@ -128,7 +128,7 @@ def _ask_vision_multi(key, model, url, parts, prompt, max_tokens):
     r = requests.post(url, headers=hdr, json=body, timeout=60)
     if r.status_code == 200:
         return _vision_parse(r.json()), 200
-    if r.status_code == 400:                        # chat 格式被拒 → 回退 responses 格式
+    if r.status_code in (400, 404):                 # chat 格式/模型入口被拒 → 回退 responses 格式
         body2 = {"model": model, "input": [{"role": "user", "content":
             [{"type": "input_image",
               "image_url": f"data:image/jpeg;base64,{b}"} for b in b64s] +

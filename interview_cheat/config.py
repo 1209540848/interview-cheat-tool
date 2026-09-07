@@ -49,16 +49,32 @@ MAX_UTTERANCE = 90           # 单句上限（秒）
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 
+def _clean_env_value(raw):
+    raw = raw.strip()
+    if not raw:
+        return ""
+    if raw[0] in ('"', "'"):
+        quote = raw[0]
+        end = raw.find(quote, 1)
+        if end != -1:
+            return raw[1:end].strip()
+        return raw.strip(quote).strip()
+    return raw.split("#", 1)[0].strip()
+
+
 def _env_get(var):
     val = os.environ.get(var, "").strip()
     if val:
         return val
+    found = ""
     try:
         with open(ENV_FILE, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line.startswith(var + "="):
-                    return line.split("=", 1)[1].strip().strip('"').strip("'")
+                    value = _clean_env_value(line.split("=", 1)[1])
+                    if value:
+                        found = value
     except OSError:
         pass
-    return ""
+    return found
