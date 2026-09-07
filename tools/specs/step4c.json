@@ -1,0 +1,74 @@
+{
+ "builds": [
+  {
+   "source": "interview-cheat-code.py",
+   "out": "interview_cheat/vision.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"vision.py — 截屏识图（火山豆包视觉 / 百炼 qwen-vl 兼容两家接口）。",
+    "",
+    "共享主本取 code 版（code ⊃ quiz）：_ask_vision_multi 多图核心 + VIS_MEM 多轮记忆助手",
+    "为 code 独有能力，quiz 永不引用（可选能力在场）。VISION_MODEL/BASE_URL/FALLBACK_URL",
+    "两版逐字相同故留在本模块。VISION_PROMPT/VISION_MAX_TOKENS 此处暂居 code 版——两版",
+    "文本不同，Step 5 收进 profiles.py 的 Profile 字段，do_vision 经 ACTIVE 取用。",
+    "do_vision 统一主本（code 版；quiz 问图段更简，同构差异收敛到 profiles）。\"\"\"",
+    "from .config import _env_get",
+    "from .log import log_event",
+    "from .state import VIS_MEM, VISION_STATE"
+   ],
+   "symbols": [
+    "VISION_MODEL",
+    "VISION_BASE_URL",
+    "VISION_FALLBACK_URL",
+    "VISION_PROMPT",
+    "VISION_MAX_TOKENS",
+    "_vision_parse",
+    "_crop_center_zoom",
+    "_ask_vision_multi",
+    "_ask_vision_once",
+    "_vis_mem_note",
+    "_vis_mem_reset",
+    "_vis_mem_parts",
+    "_vis_mem_prompt_suffix",
+    "do_vision"
+   ]
+  },
+  {
+   "source": "interview-cheat-code.py",
+   "out": "interview_cheat/ui.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"ui.py — 答题窗与对话历史属主（模块级单例状态 + Tk 答题窗）。",
+    "",
+    "R2 属主：hist/cur/VIEW/MODE_TXT/PENDING_TXT 会被整体重绑定 → 唯一属主在本模块，",
+    "他模块经 import ui 后 ui.cur 等访问（勿 from-import 后 global 赋值，会改错副本）。",
+    "show_answer_window(ui_q) = code 主本逐字节搬入（几何/手柄两段收敛编辑推迟到",
+    "Step 5 profiles 建立时：place_window/mount_window_extra）。",
+    "GEO_FILE 收敛：原 dirname(abspath(__file__)) 包化后指向包内目录 → 钉 config.BASE_DIR",
+    "（包父目录 = repo 根，logs/.env/window-pos.txt 同层）。\"\"\"",
+    "import os",
+    "import queue",
+    "",
+    "from .config import BASE_DIR, LOG_DIR",
+    "from .log import log_event",
+    "from .push import push_answer",
+    "from .state import ACRYLIC, CHAMELEON, TYPING_STATE, push_on, shot_hide, stealth",
+    "from .winfx import (BG_DARK, WIN_ALPHA, sample_screen_rect, set_acrylic,",
+    "                    set_capture_excluded, set_no_activate)",
+    "",
+    "GEO_FILE = os.path.join(BASE_DIR, \"window-pos.txt\")   # 收敛编辑：原 __file__ 相对推导（allow: code 1367）"
+   ],
+   "symbols": [
+    "hist",
+    "cur",
+    "VIEW",
+    "MODE_TXT",
+    "PENDING_TXT",
+    "load_history_from_logs",
+    "save_window_geometry",
+    "load_window_geometry",
+    "show_answer_window"
+   ]
+  }
+ ]
+}

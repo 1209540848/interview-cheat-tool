@@ -1,4 +1,5 @@
 {
   "const:ENV_FILE": [65],
-  "const:BASE_DIR": [67]
+  "const:BASE_DIR": [67],
+  "const:GEO_FILE": [1367]
 }
