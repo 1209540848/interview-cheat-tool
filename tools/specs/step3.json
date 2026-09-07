@@ -1,0 +1,51 @@
+{
+ "builds": [
+  {
+   "source": "interview-cheat-code.py",
+   "out": "interview_cheat/audio.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"audio.py — 双轨录音链路：回环+麦克风采集 / TCP 音频 / WAV 落盘。\"\"\"",
+    "import os",
+    "import struct as _struct",
+    "import threading",
+    "import time",
+    "import traceback",
+    "import wave",
+    "",
+    "import numpy as np",
+    "import pyaudiowpatch as pyaudio",
+    "",
+    "from .config import BLOCK, SAMPLE_RATE"
+   ],
+   "symbols": [
+    "resample_to_16k",
+    "pick_loopback_device",
+    "Recorder",
+    "loop_tcp_thread",
+    "WAV_FLUSH_SEC",
+    "_patch_wav_size",
+    "WavWriter"
+   ]
+  },
+  {
+   "source": "interview-cheat-code.py",
+   "out": "interview_cheat/winfx.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"winfx.py — win32 窗口特效/捕获排除（防截屏、磨砂玻璃、不抢焦点）。\"\"\"",
+    "import ctypes"
+   ],
+   "symbols": [
+    "sample_screen_rect",
+    "set_capture_excluded",
+    "set_no_activate",
+    "ACCENTPOLICY",
+    "WINDOWCOMPOSITIONATTRIBDATA",
+    "set_acrylic",
+    "BG_DARK",
+    "WIN_ALPHA"
+   ]
+  }
+ ]
+}
