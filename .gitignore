@@ -1,0 +1,8 @@
+.env
+__pycache__/
+logs/
+*.wav
+*.mp3
+*.png
+window-pos.txt
+session-*.jsonl
