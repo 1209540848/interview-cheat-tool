@@ -1,0 +1,109 @@
+# -*- coding: utf-8 -*-
+"""chat.py — DeepSeek 聊天协议（ChatAgent）。
+
+系统提示词暂按 code 主本原样搬入（SYSTEM_PROMPT 模块常量）；Step 5 接 profiles.py 后
+收敛为 ACTIVE.system_prompt（quiz 版提示词文本届时随 Profile 对象走，两版差异收进配置）。
+"""
+import json
+import threading
+
+from .config import RESUME_FILE, RESUME_MAX_CHARS
+
+# ---------- DeepSeek（OpenAI 兼容） ----------
+DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
+DEEPSEEK_MODEL = "deepseek-chat"
+HISTORY_TURNS = 5            # 保留最近 N 轮问答（追问承接；10 轮历史太长会带偏新话题）
+SYSTEM_PROMPT = (
+    "你是实时面试陪练助手：用户正在面试中，会把面试官的问题转写给你。"
+    "请直接给出简洁、口语化、可以照着念的答案要点，用中文回答，"
+    "不要铺垫，不要反问，不要 Markdown 装饰。"
+    "严禁输出思考摸索过程（内心推演、草稿、多方案对比、'让我想想'类填充）——"
+    "只输出最终结论：分点清晰、可直接照念，宁可精炼不要冗长。"
+    "如果题目要求手撕代码/写算法：直接给出完整可运行的代码，"
+    "注释只保留关键一行，代码后附一句时间/空间复杂度。"
+    "用户消息末尾可能出现【附：你此前的回答】段——那是用户实际口头说出的回答，"
+    "供你参考以承接追问、避免重复，它本身不是新问题，不要把它当问题回答。")
+
+def build_system_prompt():
+    """SYSTEM_PROMPT + resume.md 简历（≤RESUME_MAX_CHARS；文件缺失/读失败 → 警告跳过不炸）"""
+    sp = SYSTEM_PROMPT
+    try:
+        with open(RESUME_FILE, encoding="utf-8") as f:
+            resume = f.read().strip()
+        if resume:
+            sp += (f"\n\n以下是用户的简历，回答时结合简历给出贴合个人经历的答案要点"
+                   f"（不要复述简历本身）：\n{resume[:RESUME_MAX_CHARS]}")
+    except OSError:
+        print("⚠️ resume.md 不存在（简历注入跳过，可在 voice-interview/resume.md 放简历）",
+              flush=True)
+    return sp
+
+
+# ---------- 问答 agent：DeepSeek API + 内存对话历史 ----------
+class ChatAgent:
+    """OpenAI 兼容 API 问答。历史保留最近 HISTORY_TURNS 轮（追问承接）；
+    作废轮（新语音打断）通过 drop_last_pair 从历史移除。串行调用，锁保护。"""
+    def __init__(self, api_key, model=DEEPSEEK_MODEL, system_prompt=None):
+        import requests
+        self.session = requests.Session()
+        self.api_key = api_key
+        self.model = model
+        self.messages = [{"role": "system",
+                          "content": system_prompt if system_prompt is not None else SYSTEM_PROMPT}]
+        self.lock = threading.Lock()
+
+    def ask_stream(self, question, on_chunk=None, should_stop=None):
+        """流式问一轮：边生成边回调 on_chunk(当前全文)，返回完整答案文本。
+        should_stop() 返回 True 时中断请求（新语音打断，不再白等生成完）；
+        中断时返回已生成的部分文本。异常直接抛给调用方。"""
+        with self.lock:
+            self.messages.append({"role": "user", "content": question})
+            resp = self.session.post(
+                DEEPSEEK_URL,
+                headers={"Authorization": f"Bearer {self.api_key}",
+                         "Content-Type": "application/json"},
+                json={"model": self.model, "messages": self.messages,
+                      "temperature": 0.7, "max_tokens": 4000, "stream": True},
+                timeout=(10, 120),
+                stream=True,
+            )
+            try:
+                resp.raise_for_status()
+                parts = []
+                for raw in resp.iter_lines():
+                    if should_stop is not None and should_stop():
+                        break
+                    line = raw.decode("utf-8", "ignore").strip()
+                    if not line.startswith("data: "):
+                        continue
+                    data = line[6:]
+                    if data == "[DONE]":
+                        break
+                    try:
+                        delta = (json.loads(data)["choices"][0]["delta"]
+                                 .get("content")) or ""
+                    except Exception:
+                        continue
+                    if delta:
+                        parts.append(delta)
+                        if on_chunk is not None:
+                            on_chunk("".join(parts))
+            finally:
+                resp.close()
+            answer = "".join(parts).strip()
+            self.messages.append({"role": "assistant", "content": answer or "（无内容）"})
+            self._trim()
+            return answer
+
+    def void_last(self):
+        """作废在途答案但保留历史：把最后一个 assistant 换成占位符。
+        （旧版删整轮 → 面试官追问时 DeepSeek 不知道上一题是什么；占位保留上下文）"""
+        with self.lock:
+            if self.messages and self.messages[-1]["role"] == "assistant":
+                self.messages[-1] = {"role": "assistant",
+                                     "content": "（上一题没来得及回答，面试官已提出新问题）"}
+
+    def _trim(self):
+        keep = 2 * HISTORY_TURNS
+        if len(self.messages) > keep + 1:
+            self.messages = self.messages[:1] + self.messages[-keep:]

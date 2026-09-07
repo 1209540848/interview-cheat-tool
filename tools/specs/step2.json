@@ -1,0 +1,96 @@
+{
+ "builds": [
+  {
+   "source": "interview-cheat-code.py",
+   "out": "interview_cheat/dsp.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"dsp.py — 门控/断句 DSP（SpeechDetector + GateState），无 IO 纯算法。\"\"\"",
+    "import threading",
+    "import time",
+    "",
+    "import numpy as np",
+    "",
+    "from .config import (",
+    "    BLOCK, END_SILENCE, GATE_FAST_ONSET_MIN_GAP, GATE_FAST_ONSET_SEC,",
+    "    GATE_RMS_THR, GATE_SILENCE_BLOCKS, MAX_UTTERANCE, MIN_SPEECH,",
+    "    SAMPLE_RATE, VAD_RMS_THR,",
+    ")"
+   ],
+   "symbols": [
+    "SpeechDetector",
+    "GateState"
+   ]
+  },
+  {
+   "source": "interview-cheat-code.py",
+   "out": "interview_cheat/asr.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"asr.py — 云端转写（ISI 昆仑万维 + DashScope 备用降级）+ ASR 文本清洗。\"\"\"",
+    "import json",
+    "import re",
+    "import threading",
+    "import time",
+    "",
+    "import numpy as np",
+    "",
+    "from .config import SAMPLE_RATE, _env_get"
+   ],
+   "symbols": [
+    "ISI_WS_URL",
+    "ISI_TOKEN_URL",
+    "ISI_TOKEN_VERSION",
+    "DASHSCOPE_WS_URL",
+    "DASHSCOPE_MODEL",
+    "DASHSCOPE_LANGUAGE",
+    "load_isi_creds",
+    "_isi_token_cache",
+    "_isi_sign",
+    "_isi_token_lock",
+    "get_isi_token",
+    "isi_transcribe",
+    "cloud_transcribe",
+    "transcribe",
+    "ASR_NOISE_WORDS",
+    "clean_asr_text"
+   ]
+  },
+  {
+   "source": "interview-cheat-code.py",
+   "out": "interview_cheat/chat.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"chat.py — DeepSeek 聊天协议（ChatAgent）。",
+    "",
+    "系统提示词暂按 code 主本原样搬入（SYSTEM_PROMPT 模块常量）；Step 5 接 profiles.py 后",
+    "收敛为 ACTIVE.system_prompt（quiz 版提示词文本届时随 Profile 对象走，两版差异收进配置）。",
+    "\"\"\"",
+    "import json",
+    "import threading",
+    "",
+    "from .config import RESUME_FILE, RESUME_MAX_CHARS"
+   ],
+   "symbols": [
+    "DEEPSEEK_URL",
+    "DEEPSEEK_MODEL",
+    "HISTORY_TURNS",
+    "SYSTEM_PROMPT",
+    "build_system_prompt",
+    "ChatAgent"
+   ]
+  },
+  {
+   "source": "interview-cheat-code.py",
+   "out": "interview_cheat/push.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"push.py — Telegram 手机推送（兜底渠道）。\"\"\"",
+    "from .config import _env_get"
+   ],
+   "symbols": [
+    "push_answer"
+   ]
+  }
+ ]
+}

@@ -132,6 +132,8 @@ def census(path):
             bound.add(node.arg)
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             bound.add(node.name)
+        elif isinstance(node, ast.ExceptHandler) and node.name:
+            bound.add(node.name)
         elif isinstance(node, ast.Import):
             for a in node.names:
                 bound.add(a.asname or a.name.split(".")[0])
