@@ -2,7 +2,7 @@
  "builds": [
   {
    "source": "interview-cheat-code.py",
-   "out": "interview_cheat/audio.py",
+   "out": "interview_tool/audio.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"audio.py — 双轨录音链路：回环+麦克风采集 / TCP 音频 / WAV 落盘。\"\"\"",
@@ -30,7 +30,7 @@
   },
   {
    "source": "interview-cheat-code.py",
-   "out": "interview_cheat/winfx.py",
+   "out": "interview_tool/winfx.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"winfx.py — win32 窗口特效/捕获排除（防截屏、磨砂玻璃、不抢焦点）。\"\"\"",

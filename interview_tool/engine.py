@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """engine.py — 统一编排主本（quiz 测评版 / code 笔试版共享一份 main）。
 
-由 tools/gen_engine.py 从 interview-cheat-code.py 的 main() 生成（锚点校验后可重跑），
+由 tools/gen_engine.py 从旧 code 版单体的 main() 生成（锚点校验后可重跑），
 文本切片 + 登记点编辑见生成器 docstring；场景差异一律经 profiles.ACTIVE 取用，
 本模块内除 profile.key 分叉外零场景判断。禁止手改（要改先改源再重新生成）。
 
 模块级 import 三组：标准库 / 第三方（numpy、pyaudiowpatch——与原单体同款别名）/
-interview_cheat 内各模块。属主规则（R1/R2）与差异收容表见 profiles.py docstring。
+interview_tool 内各模块。属主规则（R1/R2）与差异收容表见 profiles.py docstring。
 """
 import argparse
 import ctypes
@@ -78,10 +78,10 @@ def main(profile):
     # 本场日志：logs/session-时间戳.jsonl（重启提词器 = 新一场）
     log.start_session(args.model, args.no_inject)   # R3 注入：原 4 行块（global 声明+建目录+命名+session_start）封装
 
-    # 崩溃兜底：hidden-start 启动无控制台，任何线程异常都落到 logs/cheat-crash.log
+    # 崩溃兜底：hidden-start 启动无控制台，任何线程异常都落到 logs/interview-crash.log
     def _crash_hook(etype, val, tb):
         try:
-            with open(os.path.join(LOG_DIR, "cheat-crash.log"), "a", encoding="utf-8") as f:
+            with open(os.path.join(LOG_DIR, "interview-crash.log"), "a", encoding="utf-8") as f:
                 f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {etype.__name__}: {val}\n")
                 import traceback as _tb
                 _tb.print_exception(etype, val, tb, file=f)

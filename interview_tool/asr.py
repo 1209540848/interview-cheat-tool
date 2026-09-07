@@ -86,7 +86,7 @@ def isi_transcribe(audio, appkey, ak_id, ak_secret, timeout=60):
                             "enable_intermediate_result": True,
                             "enable_punctuation_prediction": True,
                             "enable_inverse_text_normalization": True},
-                "context": {"sdk": {"name": "interview-cheat-api", "version": "1.0",
+                "context": {"sdk": {"name": "interview-tool-api", "version": "1.0",
                                     "language": "python"}},
             }
             await ws.send(json.dumps(start, ensure_ascii=False))

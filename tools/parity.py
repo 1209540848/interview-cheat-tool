@@ -7,7 +7,7 @@
   python tools/parity.py --baseline A.py B.py -o baseline.json   # 两个单体互比(Step 0)
   python tools/parity.py --check 源.py 新模块.py [新模块2.py ...]  # 门禁：源里每个符号
                                                                 # 若在任一新模块中出现必须切片相等(或差异⊆允许清单)
-  python tools/parity.py --check 源.py -p interview_cheat        # 对整个包目录做同样检查
+  python tools/parity.py --check 源.py -p interview_tool        # 对整个包目录做同样检查
   --allow allow.json   # {"符号名": [旧文件行号...]} 允许这些旧行在差异中出现(收敛编辑登记表)
 退出码: 0=通过(无意外差异); 1=有意外差异。--baseline 总返回 0。
 """

@@ -12,7 +12,7 @@
   python tools/assemble.py --census <模块.py>           # 报告"用了但没定义/没导入"的全局名
 
 spec JSON: {"builds": [{"source": "interview-cheat-code.py",   # 切片来源
-                        "out": "interview_cheat/config.py",
+                        "out": "interview_tool/config.py",
                         "preamble": ["行1", ...],              # 模块头（docstring/imports/收敛常量）
                         "symbols": ["SAMPLE_RATE", ...]}]}
 
