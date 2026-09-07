@@ -1,0 +1,32 @@
+{
+ "builds": [
+  {
+   "source": "interview-cheat-code.py",
+   "out": "interview_cheat/vision.py",
+   "preamble": [
+    "# -*- coding: utf-8 -*-",
+    "\"\"\"vision.py — 截屏识图（火山豆包视觉 / 百炼 qwen-vl 兼容两家接口）。",
+    "",
+    "共享主本取 code 版（code ⊃ quiz）：_ask_vision_multi 多图核心 + VIS_MEM 多轮记忆助手",
+    "为 code 独有能力，quiz 永不引用（可选能力在场）。VISION_MODEL/BASE_URL/FALLBACK_URL",
+    "两版逐字相同故留在本模块；VISION_PROMPT/VISION_MAX_TOKENS 两版文本不同 → 收进",
+    "profiles.py 的 Profile 字段（Step 5），do_vision 经 ACTIVE 取用。\"\"\"",
+    "from .log import log_event",
+    "from .state import VIS_MEM"
+   ],
+   "symbols": [
+    "VISION_MODEL",
+    "VISION_BASE_URL",
+    "VISION_FALLBACK_URL",
+    "_vision_parse",
+    "_crop_center_zoom",
+    "_ask_vision_multi",
+    "_ask_vision_once",
+    "_vis_mem_note",
+    "_vis_mem_reset",
+    "_vis_mem_parts",
+    "_vis_mem_prompt_suffix"
+   ]
+  }
+ ]
+}
