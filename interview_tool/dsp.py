@@ -12,7 +12,7 @@ from .config import (
 )
 
 # ---------- VAD 攒句状态机（自动模式：回环轨断面试官句子 / 麦克风轨断你的话） ----------
-# 从 interview-cheat.py 移植。回调在 feed 内（持有本对象锁）被调——编排线程单线程喂 feed，
+# 自最早原版单体移植。回调在 feed 内（持有本对象锁）被调——编排线程单线程喂 feed，
 # 回调体只允许发事件（event_q.put），禁止拿其他锁 / 调其他 detector 的方法（非重入锁死锁）。
 class SpeechDetector:
     """监听音频块 RMS：开口 ≥min_speech 开始攒，停顿 ≥end_silence 句子完成。

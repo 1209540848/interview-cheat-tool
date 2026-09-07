@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""interview_cheat — 面试/测评实时辅助工具的功能域包（重构自 interview-cheat-quiz/code.py 单体）。
+"""interview_tool — 面试/测评实时辅助工具的功能域包（重构自旧 quiz/code 两个单体）。
 
 布局（依赖单向无环）：config → log/dsp/audio/asr/push/winfx/profiles；
 chat → config,profiles；vision → config,state,profiles；ui → config,state,winfx；

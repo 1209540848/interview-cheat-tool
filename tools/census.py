@@ -13,7 +13,7 @@
   - from x import * 无法静态知道绑定 → 所在作用域引用全部放行（打印提示）
 
 用法:
-  python tools/census.py -p interview_cheat     # 整包
+  python tools/census.py -p interview_tool     # 整包
   python tools/census.py a.py b.py              # 指定文件
 输出空 = 干净。
 """

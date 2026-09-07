@@ -2,22 +2,22 @@
   "builds": [
     {
       "source": "interview-cheat-code.py",
-      "out": "interview_cheat/config.py",
+      "out": "interview_tool/config.py",
       "preamble": [
         "# -*- coding: utf-8 -*-",
-        "\"\"\"config.py — interview_cheat 包：路径基准 + 共享常量 + .env 读取（零依赖，仅 os）。",
+        "\"\"\"config.py — interview_tool 包：路径基准 + 共享常量 + .env 读取（零依赖，仅 os）。",
         "",
         "路径基准收敛编辑（重构 Step 1，2026-09-07）：旧单体 BASE_DIR = dirname(abspath(__file__))",
-        "恰好是仓库根（单体文件就住在根）；包化后 __file__ 指向 interview_cheat/ 子目录，故推导",
+        "恰好是仓库根（单体文件就住在根）；包化后 __file__ 指向 interview_tool/ 子目录，故推导",
         "改为包父目录——logs/.env/resume.md/window-pos.txt 落点与旧版完全一致。",
-        "旧行已登记 parity --allow：interview-cheat-code.py:65(ENV_FILE) / :67(BASE_DIR)。",
+        "旧行已登记 parity --allow：旧 code 单体 ENV_FILE(65) / BASE_DIR(67) 行。",
         "",
         "死代码核销（Step 1，census 三份源均确认）：READ_POLL_SECONDS / PENDING_MAX_SEC",
         "在 quiz/code/api 里都只有定义、零引用（API 版注释自称「兼容保留」），不再搬入。",
         "\"\"\"",
         "import os",
         "",
-        "# 收敛编辑：包父目录 = 仓库根（旧版单层 dirname 会指到 interview_cheat/ 自身）",
+        "# 收敛编辑：包父目录 = 仓库根（旧版单层 dirname 会指到 interview_tool/ 自身）",
         "BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))",
         "ENV_FILE = os.path.join(BASE_DIR, \".env\")"
       ],
@@ -34,13 +34,13 @@
     },
     {
       "source": "interview-cheat-code.py",
-      "out": "interview_cheat/log.py",
+      "out": "interview_tool/log.py",
       "preamble": [
         "# -*- coding: utf-8 -*-",
         "\"\"\"log.py — 会话 JSONL 日志（属主：LOG_FILENAME）。",
         "",
         "R2 属主规则：LOG_FILENAME 会整体重绑定（每场会话命名一次），只能在本模块赋值——",
-        "他模块一律 import interview_cheat.log 后经 log.start_session() 注入，不得 from-import 改写。",
+        "他模块一律 import interview_tool.log 后经 log.start_session() 注入，不得 from-import 改写。",
         "log_event 与旧版逐字节一致（只读 LOG_FILENAME 模块全局）；LOG_DIR 常量在 config.py。",
         "\"\"\"",
         "import json",
@@ -54,7 +54,7 @@
     },
     {
       "source": "interview-cheat-code.py",
-      "out": "interview_cheat/state.py",
+      "out": "interview_tool/state.py",
       "preamble": [
         "# -*- coding: utf-8 -*-",
         "\"\"\"state.py — 进程级共享状态容器（原地可变 dict，无函数、无锁）。",

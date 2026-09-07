@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-"""config.py — interview_cheat 包：路径基准 + 共享常量 + .env 读取（零依赖，仅 os）。
+"""config.py — interview_tool 包：路径基准 + 共享常量 + .env 读取（零依赖，仅 os）。
 
 路径基准收敛编辑（重构 Step 1，2026-09-07）：旧单体 BASE_DIR = dirname(abspath(__file__))
-恰好是仓库根（单体文件就住在根）；包化后 __file__ 指向 interview_cheat/ 子目录，故推导
+恰好是仓库根（单体文件就住在根）；包化后 __file__ 指向 interview_tool/ 子目录，故推导
 改为包父目录——logs/.env/resume.md/window-pos.txt 落点与旧版完全一致。
-旧行已登记 parity --allow：interview-cheat-code.py:65(ENV_FILE) / :67(BASE_DIR)。
+旧行已登记 parity --allow：旧 code 单体 ENV_FILE(65) / BASE_DIR(67) 行。
 
 死代码核销（Step 1，census 三份源均确认）：READ_POLL_SECONDS / PENDING_MAX_SEC
 在 quiz/code/api 里都只有定义、零引用（API 版注释自称「兼容保留」），不再搬入。
 """
 import os
 
-# 收敛编辑：包父目录 = 仓库根（旧版单层 dirname 会指到 interview_cheat/ 自身）
+# 收敛编辑：包父目录 = 仓库根（旧版单层 dirname 会指到 interview_tool/ 自身）
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENV_FILE = os.path.join(BASE_DIR, ".env")
 
@@ -39,7 +39,7 @@ MY_BATCH_SEC = 15            # 你的回答增量转写批量：攒够 ~15s 音�
 RESUME_MAX_CHARS = 1500      # resume.md 注入 system prompt 的截断长度
 RESUME_FILE = os.path.join(BASE_DIR, "resume.md")
 AUTO_ATTACH_ON = True        # 自动模式默认附注你的回答（F10 切换）
-# VAD 攒句参数（interview-cheat.py 移植）
+# VAD 攒句参数（自最早原版单体移植）
 VAD_RMS_THR = 0.008          # 回环"开口"阈值：静音基线极低(~0.001)，语音明显更高
 MIN_SPEECH = 1.2             # 语音持续 ≥1.2s 才开始攒（滤咳嗽/短插话）
 END_SILENCE = 0.9            # 停顿 ≥0.9s 视为句子完成

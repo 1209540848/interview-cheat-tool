@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-interview-cheat-api.py — 面试作弊工具（API 版：不依赖 Claude Code 会话）
+interview-tool-api.py — 面试实时辅助工具（API 版：不依赖 Claude Code 会话）
 
 自动模式（默认）链路：全程双轨录音（回环轨=面试官、麦克风轨=自己，外放免耳机）
 → 回环 VAD 断句攒问题 → 你开口（或停顿 2.5s）自动发送 → 云端转写（ISI，热词可配）
@@ -8,7 +8,7 @@ interview-cheat-api.py — 面试作弊工具（API 版：不依赖 Claude Code 
 全程 WAV 落盘（logs/<session>/interviewer.wav + me.wav）+ JSONL 日志 → 面试复盘。
 打断自动处理：面试官新语音 0.4s 内作废在途答案（历史保留占位）。
 
-与原版 interview-cheat.py 的区别：注入段不再模拟键盘打给 Claude Code 终端，
+与最早原版单体的区别：注入段不再模拟键盘打给 Claude Code 终端，
 改为直接 HTTP 调 OpenAI 兼容 API（DeepSeek）。
 手撕代码场景走 F3 截屏识图（火山方舟豆包视觉模型，需 .env 的 ARK_API_KEY）。
 
@@ -26,7 +26,7 @@ interview-cheat-api.py — 面试作弊工具（API 版：不依赖 Claude Code 
   Ctrl+Esc  紧急暂停（暂停录音+生成，再按恢复）
   ESC / Ctrl+Q  一键退出（进程+窗口一起没）
 
-用法: python interview-cheat-api.py [--api-key KEY] [--model deepseek-chat]
+用法: python interview-tool-api.py [--api-key KEY] [--model deepseek-chat]
       [--no-inject 只转写不调 API] [--no-window 不显示答案窗（纯转写测试）]
       [--acrylic 磨砂玻璃窗] [--chameleon 变色龙窗（吸背景色）]
       [--manual 手动模式（F1/F2 定界，旧版行为）]
@@ -78,7 +78,7 @@ MY_BATCH_SEC = 15            # 你的回答增量转写批量：攒够 ~15s 音�
 RESUME_MAX_CHARS = 1500      # resume.md 注入 system prompt 的截断长度
 RESUME_FILE = os.path.join(BASE_DIR, "resume.md")
 AUTO_ATTACH_ON = True        # 自动模式默认附注你的回答（F10 切换）
-# VAD 攒句参数（interview-cheat.py 移植）
+# VAD 攒句参数（自最早原版单体移植）
 VAD_RMS_THR = 0.008          # 回环"开口"阈值：静音基线极低(~0.001)，语音明显更高
 MIN_SPEECH = 1.2             # 语音持续 ≥1.2s 才开始攒（滤咳嗽/短插话）
 END_SILENCE = 0.9            # 停顿 ≥0.9s 视为句子完成
@@ -219,7 +219,7 @@ def isi_transcribe(audio, appkey, ak_id, ak_secret, timeout=60):
                             "enable_intermediate_result": True,
                             "enable_punctuation_prediction": True,
                             "enable_inverse_text_normalization": True},
-                "context": {"sdk": {"name": "interview-cheat-api", "version": "1.0",
+                "context": {"sdk": {"name": "interview-tool-api", "version": "1.0",
                                     "language": "python"}},
             }
             await ws.send(json.dumps(start, ensure_ascii=False))
@@ -434,7 +434,7 @@ class ChatAgent:
             self.messages = self.messages[:1] + self.messages[-keep:]
 
 # ---------- VAD 攒句状态机（自动模式：回环轨断面试官句子 / 麦克风轨断你的话） ----------
-# 从 interview-cheat.py 移植。回调在 feed 内（持有本对象锁）被调——编排线程单线程喂 feed，
+# 自最早原版单体移植。回调在 feed 内（持有本对象锁）被调——编排线程单线程喂 feed，
 # 回调体只允许发事件（event_q.put），禁止拿其他锁 / 调其他 detector 的方法（非重入锁死锁）。
 class SpeechDetector:
     """监听音频块 RMS：开口 ≥min_speech 开始攒，停顿 ≥end_silence 句子完成。
@@ -1431,10 +1431,10 @@ def main():
     LOG_FILENAME = f"session-{time.strftime('%Y%m%d-%H%M%S')}.jsonl"
     log_event({"type": "session_start", "model": args.model, "no_inject": args.no_inject})
 
-    # 崩溃兜底：hidden-start 启动无控制台，任何线程异常都落到 logs/cheat-crash.log
+    # 崩溃兜底：hidden-start 启动无控制台，任何线程异常都落到 logs/interview-crash.log
     def _crash_hook(etype, val, tb):
         try:
-            with open(os.path.join(LOG_DIR, "cheat-crash.log"), "a", encoding="utf-8") as f:
+            with open(os.path.join(LOG_DIR, "interview-crash.log"), "a", encoding="utf-8") as f:
                 f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {etype.__name__}: {val}\n")
                 import traceback as _tb
                 _tb.print_exception(etype, val, tb, file=f)

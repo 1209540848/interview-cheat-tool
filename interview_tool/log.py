@@ -2,7 +2,7 @@
 """log.py — 会话 JSONL 日志（属主：LOG_FILENAME）。
 
 R2 属主规则：LOG_FILENAME 会整体重绑定（每场会话命名一次），只能在本模块赋值——
-他模块一律 import interview_cheat.log 后经 log.start_session() 注入，不得 from-import 改写。
+他模块一律 import interview_tool.log 后经 log.start_session() 注入，不得 from-import 改写。
 log_event 与旧版逐字节一致（只读 LOG_FILENAME 模块全局）；LOG_DIR 常量在 config.py。
 """
 import json

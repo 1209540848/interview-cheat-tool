@@ -1,4 +1,4 @@
-' interview-cheat-tool - 笔试版启动器（静默，无控制台闪窗）
+' interview-tool - 笔试版启动器（静默，无控制台闪窗）
 Set fso = CreateObject("Scripting.FileSystemObject")
 base = fso.GetParentFolderName(WScript.ScriptFullName)
 Set ws = CreateObject("Wscript.Shell")

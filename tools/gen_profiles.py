@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""gen_profiles.py — 从两个旧单体提取双场景差异 → 生成 interview_cheat/profiles.py
+"""gen_profiles.py — 从两个旧单体提取双场景差异 → 生成 interview_tool/profiles.py
 
 profiles.py 收容"共享主本内无法收敛"的全部场景差异（quiz 测评版 / code 笔试版）：
   * 文本字段（程序化提取保证逐字，杜绝手抄错字）：
@@ -21,7 +21,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QUIZ = os.path.join(ROOT, "interview-cheat-quiz.py")
 CODE = os.path.join(ROOT, "interview-cheat-code.py")
-OUT = os.path.join(ROOT, "interview_cheat", "profiles.py")
+OUT = os.path.join(ROOT, "interview_tool", "profiles.py")
 
 
 def read_lines(path):
@@ -152,7 +152,7 @@ doc = """# -*- coding: utf-8 -*-
 \"\"\"profiles.py — 双场景差异数据与分支函数（quiz 测评版 / code 笔试版）。
 
 由 tools/gen_profiles.py 生成（锚点校验后可重跑），字段与方法体文本逐字来自旧单体
-interview-cheat-quiz.py / interview-cheat-code.py，禁止手改（要改先改源再重新生成）。
+旧 quiz/code 单体，禁止手改（要改先改源再重新生成）。
 
 场景差异收容表（新增差异时按类往哪放）：
   · 文本类（system_prompt/vision_prompt/vision_max_tokens/vision_retry/就绪横幅）

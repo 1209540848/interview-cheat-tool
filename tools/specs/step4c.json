@@ -2,7 +2,7 @@
  "builds": [
   {
    "source": "interview-cheat-code.py",
-   "out": "interview_cheat/vision.py",
+   "out": "interview_tool/vision.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"vision.py — 截屏识图（火山豆包视觉 / 百炼 qwen-vl 兼容两家接口）。",
@@ -35,7 +35,7 @@
   },
   {
    "source": "interview-cheat-code.py",
-   "out": "interview_cheat/ui.py",
+   "out": "interview_tool/ui.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"ui.py — 答题窗与对话历史属主（模块级单例状态 + Tk 答题窗）。",

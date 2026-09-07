@@ -2,7 +2,7 @@
  "builds": [
   {
    "source": "interview-cheat-code.py",
-   "out": "interview_cheat/vision.py",
+   "out": "interview_tool/vision.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"vision.py — 截屏识图（火山豆包视觉 / 百炼 qwen-vl 兼容两家接口）。",

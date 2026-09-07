@@ -2,7 +2,7 @@
  "builds": [
   {
    "source": "interview-cheat-quiz.py",
-   "out": "interview_cheat/typing_quiz.py",
+   "out": "interview_tool/typing_quiz.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"typing_quiz.py — quiz 版自动输入（按 1 触发/再按停，简化逻辑整函数原样）。\"\"\"",
@@ -15,7 +15,7 @@
   },
   {
    "source": "interview-cheat-code.py",
-   "out": "interview_cheat/typing_code.py",
+   "out": "interview_tool/typing_code.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"typing_code.py — code 版自动输入全家桶（Alt+1 打字 / Alt+2 粘贴 + 净化/变速/再就绪）。",

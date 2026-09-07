@@ -2,7 +2,7 @@
  "builds": [
   {
    "source": "interview-cheat-code.py",
-   "out": "interview_cheat/dsp.py",
+   "out": "interview_tool/dsp.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"dsp.py — 门控/断句 DSP（SpeechDetector + GateState），无 IO 纯算法。\"\"\"",
@@ -24,7 +24,7 @@
   },
   {
    "source": "interview-cheat-code.py",
-   "out": "interview_cheat/asr.py",
+   "out": "interview_tool/asr.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"asr.py — 云端转写（ISI 昆仑万维 + DashScope 备用降级）+ ASR 文本清洗。\"\"\"",
@@ -58,7 +58,7 @@
   },
   {
    "source": "interview-cheat-code.py",
-   "out": "interview_cheat/chat.py",
+   "out": "interview_tool/chat.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"chat.py — DeepSeek 聊天协议（ChatAgent）。",
@@ -82,7 +82,7 @@
   },
   {
    "source": "interview-cheat-code.py",
-   "out": "interview_cheat/push.py",
+   "out": "interview_tool/push.py",
    "preamble": [
     "# -*- coding: utf-8 -*-",
     "\"\"\"push.py — Telegram 手机推送（兜底渠道）。\"\"\"",

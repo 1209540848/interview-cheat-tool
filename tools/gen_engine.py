@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""gen_engine.py — 从 interview-cheat-code.py 的 main() 生成 interview_cheat/engine.py
+"""gen_engine.py — 从旧 code 版单体的 main() 生成 interview_tool/engine.py
 
 engine.py = code 版主逻辑（行为主本）+ 登记点编辑：
   (a) def main(): → def main(profile): + ACTIVE 激活 + 打字实现按 flavor 注入
@@ -24,7 +24,7 @@ import os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CODE = os.path.join(ROOT, "interview-cheat-code.py")
 QUIZ = os.path.join(ROOT, "interview-cheat-quiz.py")
-OUT = os.path.join(ROOT, "interview_cheat", "engine.py")
+OUT = os.path.join(ROOT, "interview_tool", "engine.py")
 
 
 def read_lines(path):
@@ -203,12 +203,12 @@ def main():
     PRELUDE = '''# -*- coding: utf-8 -*-
 """engine.py — 统一编排主本（quiz 测评版 / code 笔试版共享一份 main）。
 
-由 tools/gen_engine.py 从 interview-cheat-code.py 的 main() 生成（锚点校验后可重跑），
+由 tools/gen_engine.py 从旧 code 版单体的 main() 生成（锚点校验后可重跑），
 文本切片 + 登记点编辑见生成器 docstring；场景差异一律经 profiles.ACTIVE 取用，
 本模块内除 profile.key 分叉外零场景判断。禁止手改（要改先改源再重新生成）。
 
 模块级 import 三组：标准库 / 第三方（numpy、pyaudiowpatch——与原单体同款别名）/
-interview_cheat 内各模块。属主规则（R1/R2）与差异收容表见 profiles.py docstring。
+interview_tool 内各模块。属主规则（R1/R2）与差异收容表见 profiles.py docstring。
 """
 import argparse
 import ctypes
