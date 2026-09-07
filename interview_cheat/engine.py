@@ -482,6 +482,7 @@ def main(profile):
           "f3": False, "p": False, "d1": False}   # quiz 测评版槽位（code 场景无人读写）
     hidden_state = {"v": False}      # F4 窗口隐藏状态
     esc_exit_prev = 0.0              # ESC 双按退出计时（写码时 IDE 单按 ESC 极常见，见下）
+    f8_last = 0.0                    # F8 防抖：连按/键盘重复不把提词器状态抖乱
 
     def key_down(vk):
         try:
@@ -497,7 +498,7 @@ def main(profile):
         set_status("只听模式 · F10切换" if m == "listen" else "全听模式 · F10切换")
 
     def hotkey_loop():
-        nonlocal esc_exit_prev            # 双按计时在 main 作用域，赋值需声明
+        nonlocal esc_exit_prev, f8_last   # 双按/F8 防抖计时在 main 作用域，赋值需声明
         while True:
             time.sleep(0.08)
             f10 = key_down(VK_F10)
@@ -697,12 +698,11 @@ def main(profile):
             hk["down"] = down
             # F8 提词器模式开关（贴镜头小窗+大字滚动；切回普通窗）
             f8 = key_down(VK_F8)
-            if f8 and not hk["f8"]:
-                with st_lock:
-                    state["tp"] = not state.get("tp", False)
-                    tp_on = state["tp"]
-                ui("tp", tp_on)
-                print(f"📜 提词器模式: {'开（贴镜头）' if tp_on else '关'}", flush=True)
+            if hk["f8"] and not f8:
+                now = time.time()
+                if now - f8_last > 0.6:
+                    f8_last = now
+                    ui("tp_toggle")
             hk["f8"] = f8
             # F9 按住：自动模式强制解除门控（面试官说话期间你补充/纠正，麦克风全收）
             f9 = key_down(VK_F9)

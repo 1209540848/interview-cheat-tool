@@ -261,12 +261,16 @@ def show_answer_window(ui_q):
             if not a_text.get("1.0", "end").strip():   # 无答案才放占位，保留现有文本
                 a_text.insert("1.0", "（答案显示在这里，自动滚动）")
             a_text.see("1.0")
+            log_event({"type": "teleprompter", "value": "on"})
+            print("📜 提词器模式: 开（贴镜头）", flush=True)
         elif not on and tp["on"]:
             tp["on"] = False
             if tp["normal_geo"]:
                 root.geometry(tp["normal_geo"])
             a_text.config(font=(FAM, -14))
             a_text.tag_configure("code", font=(CODE_FAM, -13))   # 恢复正常字号：代码块 tag 同步复位
+            log_event({"type": "teleprompter", "value": "off"})
+            print("📜 提词器模式: 关", flush=True)
 
     def poll():
         """主线程消费 UI 事件队列（tkinter 非线程安全，跨线程只能走队列）"""
@@ -324,6 +328,8 @@ def show_answer_window(ui_q):
                         root.deiconify()
                 elif kind == "tp":
                     set_teleprompter(payload)
+                elif kind == "tp_toggle":
+                    set_teleprompter(not tp["on"])
                 elif kind == "my_answer":       # 自动模式：你的回答转写完成
                     my_label.config(text=f"🗣 你的回答：{str(payload)[:200]}")
                 elif kind == "pending":         # 自动模式：攒句段数变化
@@ -338,7 +344,7 @@ def show_answer_window(ui_q):
             tp["tick"] += 1
             if tp["tick"] >= TP_SCROLL_TICKS:
                 tp["tick"] = 0
-                a_text.yview_scroll(1, "lines")
+                a_text.yview_scroll(1, "units")
         root.after(100, poll)
 
     root.after(100, poll)
