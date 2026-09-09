@@ -104,7 +104,7 @@ def log_event(ev):
 
 # ---------- DeepSeek（OpenAI 兼容） ----------
 DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
-DEEPSEEK_MODEL = "deepseek-chat"
+DEEPSEEK_MODEL = "deepseek-v4-flash"
 HISTORY_TURNS = 5            # 保留最近 N 轮问答（追问承接；10 轮历史太长会带偏新话题）
 SYSTEM_PROMPT = (
     "你是实时面试陪练助手：用户正在面试中，会把面试官的问题转写给你。"

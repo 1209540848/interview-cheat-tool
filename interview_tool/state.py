@@ -20,9 +20,10 @@ VISION_STATE = {"busy": False}                     # 一次只截一张，防连
 push_on = {"on": True}      # F6 手机推送开关（兜底渠道，常驻开）——定义在模块级：poll() 也读
                              # （原放在 main() 局部，poll 里引用抛 NameError，推送从未生效）
 shot_hide = {"on": False}   # 截图离场标记：置顶窗会截进截图，模型看见「秒答/Alt+P截」字样直接拒答（2026-09-04 实测）
-TYPING_STATE = {"armed": False, "busy": False, "stop": False,
-                "text": "", "pos": 0, "start_ts": 0.0}   # 「Alt+1 自动输入」：识图答案就位→armed；busy=正在打；stop=再按 Alt+1 停止
-                # pos:已打字符数(续打断点)。新答案/完整打完→0;中断→停在已打数,再按 Alt+1 从断点续
+TYPING_STATE = {"armed": False, "busy": False, "stop": False, "paused": False,
+                "text": "", "pos": 0, "start_ts": 0.0,          # 「Alt+1 自动输入」：识图答案就位→armed；busy=正在打；stop=Alt+1 信号（打字中=暂停、暂停中=继续/停止）；paused=打字挂起中（2026-09-08 新增暂停/继续）
+                "auto_indent": os.environ.get("NO_AUTO_INDENT") != "1"}   # [2026-09-08 自动缩进适配] 默认开：回车后跳过答案行首空白、层级交给编辑器自动缩进；--no-auto-indent 启动参数关（记事本等无自动缩进的编辑器）
+                # pos:已打字符数(断点)。新答案/完整打完→0;暂停时=已打数（续打走打字线程局部 i，pos 供状态/日志查看）
                 # start_ts：打字启动时刻——1 秒内再按 Alt+1 忽略（防连按双击把刚启动的打字自杀）
 
 # ---- 识图多轮记忆（2026-09-06）：同题续截（题目拼图/报错/测试用例）自动带上下文 ----
