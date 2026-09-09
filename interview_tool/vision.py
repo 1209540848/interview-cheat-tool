@@ -18,6 +18,8 @@ from . import profiles          # 问图差异取 ACTIVE.vision_*（文本唯一
 #   ARK_VISION_MODEL   = 模型名（火山 doubao-1.5-vision-lite-250315 / 百炼 qwen-vl-plus）
 #   VISION_BASE_URL    = 接口地址（默认火山 chat/completions；百炼填
 #                        https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions）
+# 冗余模型选择（2026-09-09）：主模型失败自动切备用——备用三件套 BACKUP_VISION_API_KEY /
+# BACKUP_VISION_MODEL / BACKUP_VISION_BASE_URL，key/url 缺省回退主的值（见 _vision_providers）
 VISION_MODEL = "doubao-1.5-vision-lite-250315"     # 默认火山豆包轻量视觉（便宜快）
 VISION_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
 VISION_FALLBACK_URL = "https://ark.cn-beijing.volces.com/api/v3/responses"
@@ -143,16 +145,35 @@ def _ask_vision_once(key, model, url, img, prompt, max_tokens):
     """单张 PIL 图入口（保留旧签名兼容）→ 走多图核心"""
     return _ask_vision_multi(key, model, url, [img], prompt, max_tokens)
 
+def _vision_providers():
+    """[2026-09-09 冗余模型选择] 主+备用视觉模型拨号组：主失败自动切备用。
+    备用三件套缺省回退链——key/url 没填就复用主的：同服务商多模型场景（如
+    doubao-seed-evolving 主 + doubao-vision-pro 备）只需一行 BACKUP_VISION_MODEL 即启用；
+    跨服务商（备百炼 qwen-vl）则 BACKUP_VISION_API_KEY/MODEL/BASE_URL 全填。
+    返回 [(tag, key, model, url), ...]；BACKUP_VISION_MODEL 没配 → 列表只有主（行为同旧版）"""
+    key0 = _env_get("ARK_API_KEY")
+    model0 = _env_get("ARK_VISION_MODEL") or VISION_MODEL   # 可在 .env 覆盖模型名
+    url0 = _env_get("VISION_BASE_URL") or VISION_BASE_URL   # 可在 .env 换服务商
+    provs = [("main", key0, model0, url0)]
+    b_model = _env_get("BACKUP_VISION_MODEL")
+    if b_model:
+        b_key = _env_get("BACKUP_VISION_API_KEY") or key0   # 备用 key 缺省复用主 key（同服务商）
+        b_url = _env_get("BACKUP_VISION_BASE_URL") or url0  # 备用 url 缺省复用主 url（同上）
+        if b_key:                               # 备用有模型名但 key 拿不到 → 只有主（主会报缺 key 提示）
+            provs.append(("backup", b_key, b_model, b_url))
+    return provs
+
 def do_vision(ui):
     """Alt+P 识图主流程（后台线程）：全屏截图 →（自动带上同题历史截图+上次解答）→ 识图 API →
-    答案窗显示。答成记入多轮记忆；整图失败裁剪放大重试且复用同一份上下文，不打断主链路"""
+    答案窗显示。答成记入多轮记忆；识别失败走冗余链路（2026-09-09）：主模型整图失败 →
+    放大重试 → 仍失败自动切备用模型（同一份截图与上下文）→ 备用也放大 → 全失败才报错，
+    任何时候都不打断主链路"""
     try:
         key = _env_get("ARK_API_KEY")
         if not key:
             ui("status", "❌ 缺 ARK_API_KEY：.env 里填识图 API key")
             return
-        model = _env_get("ARK_VISION_MODEL") or VISION_MODEL   # 可在 .env 覆盖模型名
-        url = _env_get("VISION_BASE_URL") or VISION_BASE_URL   # 可在 .env 换服务商
+        providers = _vision_providers()         # 主+备用拨号组（备用未配则只有主，行为同旧版）
         from PIL import Image, ImageGrab
         import time as _time
         ui("ov_ctl", "hide")                        # 置顶窗先离场：它会被截进图，模型看见「Alt+P截」等字样拒答
@@ -170,22 +191,34 @@ def do_vision(ui):
         parts = _vis_mem_parts() + [img]
         prompt = profiles.ACTIVE.vision_prompt + _vis_mem_prompt_suffix()   # 收敛：原 VISION_PROMPT const
         mem_n = len(VIS_MEM["imgs"])
-        ans, st = _ask_vision_multi(key, model, url, parts, prompt,
-                                    profiles.ACTIVE.vision_max_tokens)      # 收敛：原 VISION_MAX_TOKENS const
-        if not ans:                                 # 整图（含历史）没答出来 → 中央裁剪放大再看一眼
+        ans = None
+        used_tag = "main"                       # 实际答出答案的模型 tag（日志复盘哪个模型救场）
+        for tag, pkey, pmodel, purl in providers:
+            if tag == "backup":                 # [2026-09-09] 主链路两枪都空才轮询到备用：提示切换
+                ui("status", "🔁 主视觉模型没答出，自动切换备用模型重看中…")
+            ans, st = _ask_vision_multi(pkey, pmodel, purl, parts, prompt,
+                                        profiles.ACTIVE.vision_max_tokens)
+            if ans:
+                if tag == "backup":             # 备用整图直接答出：答案带前缀，用户可感知救场
+                    ans = f"（备用视觉模型作答）\n{ans}"
+                used_tag = tag
+                break
             ui("status", "🔍 整图没认出，放大题目重看中…")
             zoom = _crop_center_zoom(img)
-            ans2, st2 = _ask_vision_multi(key, model, url, _vis_mem_parts() + [zoom],
+            ans2, st2 = _ask_vision_multi(pkey, pmodel, purl, _vis_mem_parts() + [zoom],
                                           prompt, profiles.ACTIVE.vision_max_tokens)
             if ans2:
                 ans = f"（整图没答出，放大重看）\n{ans2}"
-            else:
-                ans = (f"❌ 模型没答出来（整图 HTTP {st} / 放大 HTTP {st2}），"
-                       f"重按 {profiles.ACTIVE.vision_retry} 截一次或语音问我")
+                used_tag = tag
+                break
+        if not ans:                                 # 所有模型整图+放大全空 → 报错收尾
+            ans = (f"❌ 视觉模型都没答出来（整图 HTTP {st} / 放大 HTTP {st2}），"
+                   f"重按 {profiles.ACTIVE.vision_retry} 截一次或语音问我")
         if ans and not ans.startswith("❌"):
-            _vis_mem_note(img, ans)                 # 答成才记，答崩不污染记忆
+            _vis_mem_note(img, ans)                 # 答成才记（含备用救场），答崩不污染记忆
         ui("vision", ans)
         log_event({"type": "vision", "ok": bool(ans and not ans.startswith("❌")),
+                   "provider": used_tag,            # [2026-09-09] 实际答出的是主还是备用
                    "err": None if (ans and not ans.startswith("❌")) else (ans or "")[:200],
                    "answer": ans[:2000], "ans_len": len(ans or ""),
                    "truncated": bool(ans) and len(ans) > 2000,
